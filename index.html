@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science Bowl Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#08080a; --surface:#111113; --surface-2:#1a1a1e; --surface-3:#222228;
+  --border:rgba(255,255,255,0.07); --border-md:rgba(255,255,255,0.13); --border-hi:rgba(255,255,255,0.22);
+  --text:#f0f0f2; --text-sec:#8e8e9a; --text-muted:#4a4a58;
+  --violet:#8b5cf6; --violet-lt:#a78bfa; --violet-glow:rgba(139,92,246,0.2);
+  --cyan:#22d3ee; --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+  --display:'Sora',sans-serif; --body:'Inter',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;display:flex;flex-direction:column;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:58px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);}
+.nav-logo-mark{width:28px;height:28px;background:var(--violet);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.nav-logo-mark svg{width:15px;height:15px;fill:white;}
+.nav-logo-text{font-family:var(--display);font-weight:600;font-size:1rem;letter-spacing:-0.02em;}
+.nav-right{display:flex;align-items:center;gap:0.75rem;}
+.nav-pill{font-size:0.75rem;color:var(--text-sec);background:var(--surface-2);border:1px solid var(--border);border-radius:100px;padding:0.25rem 0.7rem;}
+kbd{background:var(--surface-3);border:1px solid var(--border-md);border-radius:4px;padding:1px 5px;font-family:var(--body);font-size:0.7rem;color:var(--text-sec);}
+
+/* LAYOUT */
+.app{flex:1;display:grid;grid-template-columns:260px 1fr;min-height:0;}
+
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:1.25rem 1rem;gap:1.5rem;}
+.sb-label{font-size:0.67rem;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;}
+.filter-chips{display:flex;flex-direction:column;gap:0.3rem;}
+.filter-chip{background:transparent;border:1px solid transparent;border-radius:8px;color:var(--text-sec);font-size:0.82rem;padding:0.4rem 0.65rem;cursor:pointer;transition:all 0.12s;text-align:left;font-family:var(--body);display:flex;align-items:center;gap:7px;}
+.filter-chip:hover{background:var(--surface-2);color:var(--text);}
+.filter-chip.active{background:var(--surface-3);border-color:var(--border-md);color:var(--text);}
+.dot-cat{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.cat-all{background:linear-gradient(135deg,#a78bfa,#22d3ee);}
+.cat-bio{background:#a78bfa;} .cat-chem{background:#22d3ee;} .cat-phys{background:#f59e0b;}
+.cat-math{background:#4ade80;} .cat-earth{background:#60a5fa;} .cat-energy{background:#f97316;}
+.q-list{display:flex;flex-direction:column;gap:0.25rem;overflow-y:auto;flex:1;}
+.q-list-item{background:transparent;border:1px solid transparent;border-radius:8px;padding:0.5rem 0.65rem;cursor:pointer;text-align:left;font-family:var(--body);transition:all 0.12s;color:var(--text-sec);font-size:0.8rem;line-height:1.4;}
+.q-list-item:hover{background:var(--surface-2);color:var(--text);}
+.q-list-item.active{background:var(--surface-3);border-color:var(--border-md);color:var(--text);}
+.q-list-item .item-meta{font-size:0.67rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:2px;}
+.q-list-item.active .item-meta{color:var(--violet-lt);}
+.vs-cg{display:flex;flex-direction:column;gap:0.45rem;}
+.vs-cg label{font-size:0.7rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);display:flex;justify-content:space-between;}
+.vs-cg label span{color:var(--violet-lt);font-weight:500;letter-spacing:0;text-transform:none;}
+.vs-range{-webkit-appearance:none;width:100%;height:4px;background:var(--surface-3);border-radius:2px;border:1px solid var(--border);outline:none;cursor:pointer;}
+.vs-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--violet);cursor:pointer;}
+.vs-select{width:100%;background:var(--surface-3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--body);font-size:0.8rem;padding:0.4rem 0.65rem;outline:none;cursor:pointer;appearance:none;}
+.vs-select option{background:#1a1a1e;}
+
+/* STAGE */
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 2.5rem;overflow-y:auto;}
+.idle-hint{text-align:center;color:var(--text-muted);}
+.idle-hint svg{width:48px;height:48px;margin-bottom:1rem;opacity:0.3;}
+.idle-hint p{font-size:0.9rem;line-height:1.6;}
+.idle-hint strong{color:var(--text-sec);}
+.q-stage{width:100%;max-width:760px;display:none;flex-direction:column;gap:1.25rem;}
+.q-stage.visible{display:flex;}
+
+/* HEADER BADGES */
+.q-header{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+.badge{font-size:0.68rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;padding:0.22rem 0.65rem;border-radius:100px;}
+.badge-cat{background:rgba(139,92,246,0.15);color:var(--violet-lt);}
+.badge-toss{background:rgba(34,211,238,0.12);color:var(--cyan);}
+.badge-bon{background:rgba(245,158,11,0.12);color:var(--amber);}
+.badge-fmt{background:var(--surface-3);color:var(--text-sec);border:1px solid var(--border);}
+.q-num{margin-left:auto;font-size:0.78rem;color:var(--text-muted);}
+
+/* TEXT REVEAL BOX */
+.q-text-area{background:var(--surface);border:1px solid var(--border-md);border-radius:18px;padding:1.75rem 2rem;min-height:160px;font-size:1.12rem;line-height:1.9;color:var(--text);position:relative;}
+.q-text-area .preamble{color:var(--text-muted);font-size:0.9rem;}
+.word{opacity:0;display:inline;}
+.word.shown{opacity:1;}
+.word-space{display:inline;}
+
+/* BONUS */
+.bonus-lead-box{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;font-size:0.9rem;color:var(--text-sec);font-style:italic;}
+.part-nav{display:flex;align-items:center;gap:0.5rem;}
+.part-dot-btn{width:28px;height:28px;border-radius:50%;border:2px solid var(--border-md);background:var(--surface-3);cursor:pointer;transition:all 0.12s;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:600;color:var(--text-muted);font-family:var(--body);}
+.part-dot-btn.active{border-color:var(--violet);background:var(--violet);color:white;}
+.part-dot-btn.done-correct{border-color:var(--green);color:var(--green);background:rgba(34,197,94,0.1);}
+.part-dot-btn.done-wrong{border-color:var(--red);color:var(--red);background:rgba(239,68,68,0.1);}
+.part-dot-btn.done-skip{border-color:var(--text-muted);color:var(--text-muted);}
+
+/* ANSWER REVEAL */
+.answer-reveal{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:14px;padding:1rem 1.5rem;display:none;}
+.answer-reveal.visible{display:block;}
+.ans-label{font-size:0.67rem;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:rgba(34,197,94,0.7);margin-bottom:0.35rem;}
+.ans-text{font-size:1.05rem;font-weight:600;color:var(--green);}
+
+/* ANSWER INPUT ZONE */
+.answer-zone{display:none;flex-direction:column;gap:0.75rem;}
+.answer-zone.visible{display:flex;}
+.answer-zone-label{font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);}
+.answer-input-row{display:flex;gap:0.6rem;align-items:center;}
+.answer-input{flex:1;background:var(--surface-2);border:1px solid var(--border-md);border-radius:10px;color:var(--text);font-family:var(--body);font-size:0.95rem;padding:0.65rem 0.9rem;outline:none;transition:border-color 0.15s;}
+.answer-input:focus{border-color:var(--violet);box-shadow:0 0 0 3px var(--violet-glow);}
+.answer-input.correct{border-color:var(--green);background:rgba(34,197,94,0.06);}
+.answer-input.wrong{border-color:var(--red);background:rgba(239,68,68,0.06);}
+.btn-submit{background:var(--violet);color:white;border:none;border-radius:10px;font-family:var(--body);font-size:0.88rem;font-weight:600;padding:0.65rem 1.1rem;cursor:pointer;white-space:nowrap;transition:background 0.15s;}
+.btn-submit:hover{background:#7c3aed;}
+.answer-feedback{font-size:0.88rem;font-weight:600;display:none;align-items:center;gap:6px;padding:0.6rem 0.9rem;border-radius:9px;}
+.answer-feedback.visible{display:flex;}
+.answer-feedback.correct{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:var(--green);}
+.answer-feedback.wrong{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:var(--red);}
+
+/* CONTROLS */
+.controls-bar{display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;}
+.btn-read{display:flex;align-items:center;gap:8px;background:var(--violet);color:white;border:none;border-radius:12px;font-family:var(--body);font-size:0.92rem;font-weight:600;padding:0.75rem 1.4rem;cursor:pointer;transition:background 0.15s,transform 0.1s;justify-content:center;}
+.btn-read:hover{background:#7c3aed;} .btn-read:active{transform:scale(0.98);}
+.btn-read.reading{background:var(--red);} .btn-read:disabled{opacity:0.3;cursor:not-allowed;}
+.btn-buzz{display:none;align-items:center;gap:8px;background:var(--amber);color:#1a0e00;border:none;border-radius:12px;font-family:var(--body);font-size:0.92rem;font-weight:700;padding:0.75rem 1.4rem;cursor:pointer;transition:background 0.15s,transform 0.1s;}
+.btn-buzz:hover{background:#d97706;} .btn-buzz:active{transform:scale(0.98);}
+.btn-buzz.visible{display:flex;}
+.btn-secondary{display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border-md);border-radius:12px;color:var(--text-sec);font-family:var(--body);font-size:0.88rem;font-weight:500;padding:0.75rem 1rem;cursor:pointer;transition:border-color 0.15s,color 0.15s;white-space:nowrap;}
+.btn-secondary:hover{border-color:var(--border-hi);color:var(--text);}
+.nav-arrows{display:flex;gap:0.5rem;margin-left:auto;}
+.nav-arr{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;color:var(--text-sec);padding:0.5rem 0.8rem;cursor:pointer;font-family:var(--body);font-size:0.82rem;transition:border-color 0.12s,color 0.12s;display:flex;align-items:center;gap:5px;}
+.nav-arr:hover{border-color:var(--border-hi);color:var(--text);} .nav-arr:disabled{opacity:0.3;cursor:not-allowed;}
+
+/* STATUS */
+.status-bar{display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;min-height:40px;}
+.s-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex-shrink:0;transition:background 0.2s;}
+.s-dot.idle{background:var(--text-muted);}
+.s-dot.reading{background:var(--violet-lt);box-shadow:0 0 6px var(--violet-glow);animation:pulse 1s infinite;}
+.s-dot.buzzed{background:var(--amber);box-shadow:0 0 6px rgba(245,158,11,0.4);}
+.s-dot.done{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,0.4);}
+.s-dot.correct{background:var(--green);}
+.s-dot.wrong{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.s-txt{font-size:0.82rem;color:var(--text-sec);flex:1;}
+.s-wave{display:flex;align-items:center;gap:2px;height:16px;flex-shrink:0;}
+.s-wb{width:3px;border-radius:2px;background:var(--violet);opacity:0.2;}
+.s-wave.active .s-wb{opacity:1;animation:wv 0.8s ease-in-out infinite;}
+.s-wb:nth-child(1){animation-delay:0s}.s-wb:nth-child(2){animation-delay:0.1s}
+.s-wb:nth-child(3){animation-delay:0.2s}.s-wb:nth-child(4){animation-delay:0.15s}.s-wb:nth-child(5){animation-delay:0.05s}
+@keyframes wv{0%,100%{height:3px}50%{height:14px}}
+
+@media(max-width:700px){.app{grid-template-columns:1fr;}.sidebar{display:none;}.stage{padding:1.25rem 1rem;}.q-text-area{font-size:1rem;padding:1.25rem;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></div>
+    <span class="nav-logo-text">Science Bowl Reader</span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-pill" id="nav-count">50 questions</span>
+    <span class="nav-pill" style="font-size:0.72rem;color:var(--text-muted)"><kbd>Space</kbd> read &nbsp;<kbd>B</kbd> buzz &nbsp;<kbd>←→</kbd> nav</span>
+  </div>
+</nav>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="sb-label">Category</div>
+      <div class="filter-chips">
+        <button class="filter-chip active" data-cat="ALL"><span class="dot-cat cat-all"></span>All categories</button>
+        <button class="filter-chip" data-cat="BIOLOGY"><span class="dot-cat cat-bio"></span>Biology</button>
+        <button class="filter-chip" data-cat="CHEMISTRY"><span class="dot-cat cat-chem"></span>Chemistry</button>
+        <button class="filter-chip" data-cat="PHYSICS"><span class="dot-cat cat-phys"></span>Physics</button>
+        <button class="filter-chip" data-cat="MATH"><span class="dot-cat cat-math"></span>Math</button>
+        <button class="filter-chip" data-cat="EARTH AND SPACE"><span class="dot-cat cat-earth"></span>Earth &amp; Space</button>
+        <button class="filter-chip" data-cat="ENERGY"><span class="dot-cat cat-energy"></span>Energy</button>
+      </div>
+    </div>
+    <div>
+      <div class="sb-label">Type</div>
+      <div class="filter-chips">
+        <button class="filter-chip active" data-type="ALL">All types</button>
+        <button class="filter-chip" data-type="tossup">Tossups only</button>
+        <button class="filter-chip" data-type="bonus">Bonuses only</button>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+      <div class="sb-label">Questions</div>
+      <div class="q-list" id="q-list"></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:1rem;display:flex;flex-direction:column;gap:0.8rem;">
+      <div class="sb-label">Voice settings</div>
+      <div class="vs-cg"><label>Voice <span id="vs-voice-lbl">–</span></label><select id="vs-voice" class="vs-select"><option>Loading…</option></select></div>
+      <div class="vs-cg"><label>Speed <span id="vs-rate-lbl">1.0×</span></label><input type="range" class="vs-range" id="vs-rate" min="0.5" max="2" step="0.1" value="1"></div>
+      <div class="vs-cg"><label>Pitch <span id="vs-pitch-lbl">1.0</span></label><input type="range" class="vs-range" id="vs-pitch" min="0.5" max="2" step="0.1" value="1"></div>
+    </div>
+  </aside>
+
+  <!-- STAGE -->
+  <main class="stage" id="stage">
+    <div class="idle-hint" id="idle-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      <p>Select a question from the sidebar,<br>then press <strong>Read</strong> or <kbd>Space</kbd> to begin.</p>
+    </div>
+
+    <div class="q-stage" id="q-stage">
+      <div class="q-header" id="q-header"></div>
+
+      <!-- TOSSUP -->
+      <div id="tossup-area" style="display:none;flex-direction:column;gap:1rem;">
+        <div class="q-text-area" id="q-text-box"></div>
+        <div class="answer-reveal" id="ans-reveal">
+          <div class="ans-label">Correct Answer</div>
+          <div class="ans-text" id="ans-text"></div>
+        </div>
+        <!-- answer input (shown after buzz) -->
+        <div class="answer-zone" id="tossup-answer-zone">
+          <div class="answer-zone-label">Your answer</div>
+          <div class="answer-input-row">
+            <input class="answer-input" id="tossup-answer-input" type="text" placeholder="Type your answer and press Enter…" autocomplete="off">
+            <button class="btn-submit" onclick="submitTossupAnswer()">Submit</button>
+          </div>
+          <div class="answer-feedback" id="tossup-feedback"></div>
+        </div>
+      </div>
+
+      <!-- BONUS -->
+      <div id="bonus-area" style="display:none;flex-direction:column;gap:1rem;">
+        <div class="bonus-lead-box" id="bonus-lead"></div>
+        <div class="part-nav" id="part-nav"></div>
+        <div class="q-text-area" id="bonus-text-box"></div>
+        <!-- bonus answer zone (always visible between parts) -->
+        <div class="answer-zone" id="bonus-answer-zone">
+          <div class="answer-zone-label">Your answer for this part</div>
+          <div class="answer-input-row">
+            <input class="answer-input" id="bonus-answer-input" type="text" placeholder="Type your answer and press Enter…" autocomplete="off">
+            <button class="btn-submit" onclick="submitBonusAnswer()">Submit</button>
+          </div>
+          <div class="answer-feedback" id="bonus-feedback"></div>
+        </div>
+        <div class="answer-reveal" id="bonus-ans-reveal">
+          <div class="ans-label">Correct Answer</div>
+          <div class="ans-text" id="bonus-ans-text"></div>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="controls-bar">
+        <button class="btn-read" id="btn-read" onclick="handleRead()">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" id="read-icon"><path d="M8 5v14l11-7z"/></svg>
+          <span id="read-lbl">Read</span>
+        </button>
+        <button class="btn-buzz" id="btn-buzz" onclick="handleBuzz()">⚡ Buzz in</button>
+        <button class="btn-secondary" onclick="revealCurrentAnswer()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Show answer
+        </button>
+        <button class="btn-secondary" onclick="resetQuestion()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+          Reset
+        </button>
+        <div class="nav-arrows">
+          <button class="nav-arr" id="btn-prev" onclick="navigate(-1)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Prev</button>
+          <button class="nav-arr" id="btn-next" onclick="navigate(1)">Next <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <div class="s-dot idle" id="s-dot"></div>
+        <span class="s-txt" id="s-txt">Ready</span>
+        <div class="s-wave" id="s-wave">
+          <div class="s-wb" style="height:3px"></div><div class="s-wb" style="height:7px"></div>
+          <div class="s-wb" style="height:11px"></div><div class="s-wb" style="height:7px"></div><div class="s-wb" style="height:3px"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── QUESTIONS ──────────────────────────────────────────────────────────────────
+const QUESTIONS = [
+  { category:'BIOLOGY', type:'tossup', format:'Short Answer', tossup:'This organelle contains its own circular DNA and ribosomes resembling those of prokaryotes, supporting the endosymbiotic theory. Its inner membrane forms folds called cristae that dramatically increase surface area for the electron transport chain. For 4 points, name this double-membraned organelle that produces the majority of cellular ATP.', answer:'MITOCHONDRIA' },
+  { category:'BIOLOGY', type:'bonus', lead:'This bonus concerns DNA replication.', parts:[{q:'For 10 points, what enzyme synthesizes new DNA strands by adding nucleotides in the 5-prime to 3-prime direction?',a:'DNA POLYMERASE'},{q:'For 10 points, what short RNA sequences serve as starting points for DNA polymerase during replication?',a:'PRIMERS'},{q:'For 10 points, what enzyme relieves torsional strain ahead of the replication fork by cutting and rejoining DNA strands?',a:'TOPOISOMERASE'}]},
+  { category:'BIOLOGY', type:'tossup', format:'Multiple Choice', tossup:'Which of the following correctly describes the role of the sodium-potassium ATPase pump? W) It moves sodium and potassium down their concentration gradients. X) It uses ATP to move 3 sodium ions out and 2 potassium ions in. Y) It moves 2 sodium ions in and 3 potassium ions out using ATP. Z) It functions only during an action potential.', answer:'X' },
+  { category:'BIOLOGY', type:'bonus', lead:'This bonus concerns the immune system.', parts:[{q:'For 10 points, what cells present antigen fragments on MHC class II molecules to activate helper T cells?',a:'ANTIGEN-PRESENTING CELLS'},{q:'For 10 points, what type of hypersensitivity reaction involves IgE antibodies bound to mast cells and is responsible for anaphylaxis?',a:'TYPE I HYPERSENSITIVITY'},{q:'For 10 points, what cytokine secreted by helper T cells stimulates proliferation of both T and B lymphocytes?',a:'INTERLEUKIN-2'}]},
+  { category:'BIOLOGY', type:'tossup', format:'Short Answer', tossup:'This process uses the enzyme RuBisCO to fix atmospheric carbon dioxide into a three-carbon compound called 3-phosphoglycerate. It occurs in the stroma of the chloroplast and requires ATP and NADPH produced by the light reactions. For 4 points, name this carbon fixation cycle named after its discoverer.', answer:'CALVIN CYCLE' },
+  { category:'BIOLOGY', type:'bonus', lead:'This bonus concerns cell signaling.', parts:[{q:'For 10 points, what second messenger is produced when adenylyl cyclase is activated by a G-protein coupled receptor?',a:'CYCLIC AMP'},{q:'For 10 points, what enzyme phosphorylates tyrosine residues on target proteins and is often constitutively active in cancer cells?',a:'TYROSINE KINASE'},{q:'For 10 points, activation of phospholipase C cleaves PIP2 into DAG and what other second messenger that releases calcium from the endoplasmic reticulum?',a:'INOSITOL TRISPHOSPHATE'}]},
+  { category:'BIOLOGY', type:'tossup', format:'Short Answer', tossup:'In this type of RNA processing, consensus sequences including the 5-prime GU and 3-prime AG dinucleotides flanking introns are recognized by a large ribonucleoprotein complex. For 4 points, name this complex that catalyzes the removal of introns and ligation of exons from pre-mRNA.', answer:'SPLICEOSOME' },
+  { category:'BIOLOGY', type:'bonus', lead:'This bonus concerns membrane transport.', parts:[{q:'For 10 points, what type of transport moves solutes against their concentration gradient using ATP directly?',a:'PRIMARY ACTIVE TRANSPORT'},{q:'For 10 points, what term describes the movement of water across a semipermeable membrane from low to high solute concentration?',a:'OSMOSIS'},{q:'For 10 points, what protein channels are selectively permeable to water and are found abundantly in red blood cells and kidney tubules?',a:'AQUAPORINS'}]},
+  { category:'BIOLOGY', type:'tossup', format:'Multiple Choice', tossup:'Which of the following best describes the function of telomerase? W) It repairs double-strand breaks in DNA. X) It adds repetitive DNA sequences to chromosome ends. Y) It unwinds the double helix ahead of the replication fork. Z) It removes RNA primers after replication.', answer:'X' },
+  { category:'BIOLOGY', type:'bonus', lead:'This bonus concerns genetics and inheritance.', parts:[{q:'For 10 points, what term describes the phenomenon where a single gene affects multiple unrelated phenotypic traits?',a:'PLEIOTROPY'},{q:'For 10 points, in epistasis, what term describes the gene whose expression masks the expression of another gene at a different locus?',a:'EPISTATIC'},{q:'For 10 points, what formula gives the expected frequency of a genotype in a population at Hardy-Weinberg equilibrium?',a:'P SQUARED PLUS 2PQ PLUS Q SQUARED EQUALS 1'}]},
+  { category:'CHEMISTRY', type:'tossup', format:'Short Answer', tossup:"This principle states that electrons fill orbitals of lowest energy first, and combined with the Pauli exclusion principle and Hund's rule, it explains the ground-state electron configurations of atoms. For 4 points, name this building-up principle named from the German word for construction.", answer:'AUFBAU PRINCIPLE' },
+  { category:'CHEMISTRY', type:'bonus', lead:'This bonus concerns thermodynamics.', parts:[{q:'For 10 points, what function represents the maximum non-expansion work obtainable from a system at constant temperature and pressure?',a:'GIBBS FREE ENERGY'},{q:"For 10 points, what law states that the standard enthalpy of a reaction equals the sum of standard enthalpies of formation of products minus those of reactants?",a:"HESS'S LAW"},{q:'For 10 points, for a process at equilibrium, what is the value of the Gibbs free energy change?',a:'ZERO'}]},
+  { category:'CHEMISTRY', type:'tossup', format:'Multiple Choice', tossup:'A reaction has delta H of negative 80 kilojoules and delta S of negative 150 joules per kelvin. At what temperature does the reaction become non-spontaneous? W) Below 533 Kelvin. X) Above 533 Kelvin. Y) Below 267 Kelvin. Z) The reaction is always spontaneous.', answer:'X' },
+  { category:'CHEMISTRY', type:'bonus', lead:'This bonus concerns coordination chemistry.', parts:[{q:'For 10 points, what term describes ligands that bind to a metal center through two or more donor atoms simultaneously?',a:'CHELATING LIGANDS'},{q:'For 10 points, in crystal field theory, what term describes the energy difference between the higher and lower d-orbital sets in an octahedral complex?',a:'CRYSTAL FIELD SPLITTING ENERGY'},{q:'For 10 points, what rule states that transition metal complexes tend to have enough ligands to give the metal 18 total valence electrons?',a:'18-ELECTRON RULE'}]},
+  { category:'CHEMISTRY', type:'tossup', format:'Short Answer', tossup:'This phenomenon occurs when two resonance structures contribute unequally to the actual structure of a molecule. The molecule ozone exhibits this property, with an average bond order of 1.5 for each oxygen-oxygen bond. For 4 points, give the general term for the delocalization of electrons across multiple bonds.', answer:'RESONANCE' },
+  { category:'CHEMISTRY', type:'bonus', lead:'This bonus concerns chemical kinetics.', parts:[{q:'For 10 points, what integrated rate law describes a first-order reaction, relating concentration to time using a natural logarithm?',a:'LN OF A EQUALS LN OF A NAUGHT MINUS KT'},{q:'For 10 points, what is the half-life of a first-order reaction with a rate constant of 0.0693 per minute?',a:'10 MINUTES'},{q:'For 10 points, what type of catalyst is dissolved in the same phase as the reactants?',a:'HOMOGENEOUS CATALYST'}]},
+  { category:'CHEMISTRY', type:'tossup', format:'Short Answer', tossup:'This effect explains why the 6s orbital in gold and mercury is stabilized and contracted relative to non-relativistic predictions, making gold yellow rather than silver-colored. For 4 points, name these quantum mechanical corrections significant for heavy elements.', answer:'RELATIVISTIC EFFECTS' },
+  { category:'CHEMISTRY', type:'bonus', lead:'This bonus concerns electrochemistry.', parts:[{q:'For 10 points, what equation relates the equilibrium constant of a redox reaction to its standard cell potential using delta G?',a:'DELTA G EQUALS NEGATIVE NFE'},{q:'For 10 points, at 25 degrees Celsius, approximately how many millivolts corresponds to a tenfold change in the reaction quotient for a two-electron process?',a:'29.6 MILLIVOLTS'},{q:'For 10 points, what type of electrode maintains a constant potential and is used as a reference in electrochemical measurements?',a:'REFERENCE ELECTRODE'}]},
+  { category:'PHYSICS', type:'tossup', format:'Short Answer', tossup:'This quantity is the time-rate of change of angular momentum and is analogous to force in rotational dynamics. It equals the moment of inertia times angular acceleration, and for a particle it equals the cross product of the position vector and the applied force. For 4 points, name this rotational analog of force.', answer:'TORQUE' },
+  { category:'PHYSICS', type:'bonus', lead:'This bonus concerns quantum mechanics.', parts:[{q:'For 10 points, what principle states that the product of the uncertainties in position and momentum must be greater than or equal to h-bar over 2?',a:'HEISENBERG UNCERTAINTY PRINCIPLE'},{q:'For 10 points, what equation describes the time evolution of the wave function of a quantum mechanical system?',a:'SCHRODINGER EQUATION'},{q:'For 10 points, what quantum phenomenon allows particles to pass through energy barriers that classical physics would forbid?',a:'QUANTUM TUNNELING'}]},
+  { category:'PHYSICS', type:'tossup', format:'Multiple Choice', tossup:'A uniform rod of length L and mass M is pivoted at one end and released from a horizontal position. What is the angular velocity when it reaches the vertical position? W) Square root of 3g over L. X) Square root of 2g over L. Y) Square root of g over L. Z) Square root of 6g over L.', answer:'W' },
+  { category:'PHYSICS', type:'bonus', lead:'This bonus concerns thermodynamics.', parts:[{q:'For 10 points, what cycle represents the maximum possible efficiency for a heat engine operating between two temperatures?',a:'CARNOT CYCLE'},{q:'For 10 points, what is the efficiency of a Carnot engine operating between 600 Kelvin and 300 Kelvin?',a:'50 PERCENT'},{q:'For 10 points, what law states that the entropy of a perfect crystal at absolute zero is exactly zero?',a:'THIRD LAW OF THERMODYNAMICS'}]},
+  { category:'PHYSICS', type:'tossup', format:'Short Answer', tossup:'This phenomenon occurs when the frequency of an applied oscillating force matches the natural frequency of a system, causing a dramatic increase in amplitude. The Tacoma Narrows Bridge collapse is a famous example. For 4 points, name this phenomenon.', answer:'RESONANCE' },
+  { category:'PHYSICS', type:'bonus', lead:'This bonus concerns electromagnetism.', parts:[{q:"For 10 points, what law states that the line integral of the magnetic field around a closed loop equals mu-naught times the enclosed current?",a:"AMPERE'S LAW"},{q:'For 10 points, what quantity equals the product of the magnetic field, area, and cosine of the angle between the field and the area normal?',a:'MAGNETIC FLUX'},{q:"For 10 points, what four equations unify electricity and magnetism and predict electromagnetic waves?",a:"MAXWELL'S EQUATIONS"}]},
+  { category:'PHYSICS', type:'tossup', format:'Short Answer', tossup:'This nuclear model predicts magic numbers of 2, 8, 20, 28, 50, 82, and 126 corresponding to closed shells, treating nucleons as moving in a central potential well. For 4 points, name this model of nuclear structure analogous to the atomic orbital model.', answer:'NUCLEAR SHELL MODEL' },
+  { category:'MATH', type:'tossup', format:'Short Answer', tossup:'This theorem states that for any continuous function on a closed interval, there exists at least one point where the derivative equals the average rate of change of the function over that interval. For 4 points, name this fundamental theorem of differential calculus.', answer:'MEAN VALUE THEOREM' },
+  { category:'MATH', type:'bonus', lead:'This bonus concerns linear algebra.', parts:[{q:'For 10 points, what scalar associated with a square matrix is zero if and only if the matrix is singular?',a:'DETERMINANT'},{q:'For 10 points, what theorem states that every square matrix satisfies its own characteristic polynomial?',a:'CAYLEY-HAMILTON THEOREM'},{q:'For 10 points, what decomposition expresses a matrix as a product of an orthogonal matrix and an upper triangular matrix?',a:'QR DECOMPOSITION'}]},
+  { category:'MATH', type:'tossup', format:'Multiple Choice', tossup:'What is the radius of convergence of the power series for e to the x centered at zero? W) 1. X) Pi. Y) Infinity. Z) e.', answer:'Y' },
+  { category:'MATH', type:'bonus', lead:'This bonus concerns number theory.', parts:[{q:"For 10 points, what theorem states that for a prime p and integer a not divisible by p, a to the p minus 1 is congruent to 1 modulo p?",a:"FERMAT'S LITTLE THEOREM"},{q:"For 10 points, what function gives the number of positive integers up to n that are coprime to n?",a:"EULER'S TOTIENT FUNCTION"},{q:'For 10 points, what algorithm efficiently computes the greatest common divisor by repeated division?',a:'EUCLIDEAN ALGORITHM'}]},
+  { category:'MATH', type:'tossup', format:'Short Answer', tossup:'This surface is generated by rotating a hyperbola about its conjugate axis and has the property that straight lines can be drawn on it. It appears in cooling tower designs. For 4 points, name this quadric surface.', answer:'HYPERBOLOID' },
+  { category:'MATH', type:'bonus', lead:'This bonus concerns differential equations.', parts:[{q:'For 10 points, what method of solving linear ODEs assumes a solution of the form e to the rt to find the characteristic equation?',a:'CHARACTERISTIC EQUATION METHOD'},{q:'For 10 points, what transformation converts a differential equation into an algebraic equation in the complex variable s?',a:'LAPLACE TRANSFORM'},{q:'For 10 points, what type of point of a second-order ODE occurs when the coefficient of the highest derivative is zero?',a:'SINGULAR POINT'}]},
+  { category:'MATH', type:'tossup', format:'Short Answer', tossup:'Proved by Andrew Wiles in 1995, this result states there are no positive integer solutions to x to the n plus y to the n equals z to the n for integer n greater than 2. For 4 points, name this theorem proposed by a 17th-century French mathematician.', answer:"FERMAT'S LAST THEOREM" },
+  { category:'EARTH AND SPACE', type:'tossup', format:'Short Answer', tossup:"This phenomenon occurs when solar wind particles interact with Earth's magnetosphere and funnel toward the poles, exciting atmospheric gases to emit light. The green color comes from oxygen atoms at 100 to 150 kilometers altitude. For 4 points, name this atmospheric light display.", answer:'AURORA' },
+  { category:'EARTH AND SPACE', type:'bonus', lead:'This bonus concerns stellar evolution.', parts:[{q:'For 10 points, what stellar remnant forms when a star of 8 to 20 solar masses undergoes core-collapse supernova, leaving an object composed almost entirely of neutrons?',a:'NEUTRON STAR'},{q:'For 10 points, what radiation is emitted by charged particles accelerating in magnetic fields, important in radio astronomy?',a:'SYNCHROTRON RADIATION'},{q:'For 10 points, what quantity equal to negative 2.5 times the log base 10 of flux plus a constant measures stellar brightness?',a:'MAGNITUDE'}]},
+  { category:'EARTH AND SPACE', type:'tossup', format:'Multiple Choice', tossup:'Which correctly describes the geologic process that forms ophiolite sequences? W) Continental collision. X) Obduction of oceanic crust onto continental margins. Y) Subduction zone volcanism. Z) Hot spot activity.', answer:'X' },
+  { category:'EARTH AND SPACE', type:'bonus', lead:'This bonus concerns atmospheric science.', parts:[{q:"For 10 points, what circulation cell consists of rising air near the equator, poleward flow aloft, and sinking at about 30 degrees latitude?",a:'HADLEY CELL'},{q:"For 10 points, what effect deflects moving air to the right in the Northern Hemisphere due to Earth's rotation?",a:'CORIOLIS EFFECT'},{q:'For 10 points, what boundary layer between the troposphere and stratosphere acts as a cap on convection?',a:'TROPOPAUSE'}]},
+  { category:'EARTH AND SPACE', type:'tossup', format:'Short Answer', tossup:'This dating method relies on the decay of uranium-235 to lead-207 with a half-life of 704 million years. Concordia diagrams correct for lead loss in this method. For 4 points, give the general name for these radiometric dating techniques.', answer:'URANIUM-LEAD DATING' },
+  { category:'EARTH AND SPACE', type:'bonus', lead:'This bonus concerns planetary science.', parts:[{q:'For 10 points, what region beyond Neptune contains icy bodies including Pluto and is the source of short-period comets?',a:'KUIPER BELT'},{q:'For 10 points, what moon of Jupiter is the most volcanically active body in the solar system?',a:'IO'},{q:'For 10 points, what hypothetical spherical cloud at the outer solar system is thought to be the source of long-period comets?',a:'OORT CLOUD'}]},
+  { category:'ENERGY', type:'tossup', format:'Short Answer', tossup:'This quantity measures efficiency of heat pumps and refrigerators as the ratio of useful heat transferred to work input. For a heat pump heating a building it is always greater than one. For 4 points, name this performance metric abbreviated COP.', answer:'COEFFICIENT OF PERFORMANCE' },
+  { category:'ENERGY', type:'bonus', lead:'This bonus concerns nuclear energy.', parts:[{q:'For 10 points, what moderator is used in CANDU reactors to slow neutrons without absorbing them, allowing natural uranium fuel?',a:'HEAVY WATER'},{q:'For 10 points, what quantity measured in megaelectronvolts per nucleon represents energy released per unit mass in a nuclear reaction?',a:'BINDING ENERGY PER NUCLEON'},{q:'For 10 points, what term describes the minimum fissile mass needed to sustain a chain reaction?',a:'CRITICAL MASS'}]},
+  { category:'ENERGY', type:'tossup', format:'Multiple Choice', tossup:"Which best describes a proton exchange membrane fuel cell? W) Hydrogen is burned to heat steam driving a turbine. X) Hydrogen is oxidized at the anode while oxygen is reduced at the cathode, producing electricity and water. Y) Protons move from cathode to anode. Z) It requires temperatures above 800 Celsius.", answer:'X' },
+  { category:'ENERGY', type:'bonus', lead:'This bonus concerns solar energy.', parts:[{q:'For 10 points, what semiconductor with a band gap of 1.1 electron volts forms the basis of most commercial solar cells?',a:'SILICON'},{q:'For 10 points, what theoretical limit gives the maximum single-junction solar cell efficiency at approximately 33.7 percent?',a:'SHOCKLEY-QUEISSER LIMIT'},{q:'For 10 points, what concentrating solar system uses heliostats to focus sunlight onto a central receiver tower?',a:'POWER TOWER'}]},
+  { category:'ENERGY', type:'tossup', format:'Short Answer', tossup:"This storage technology uses intercalation of lithium ions between graphite anodes and lithium metal oxide cathodes. Its inventors won the 2019 Nobel Prize in Chemistry. For 4 points, name this rechargeable battery technology.", answer:'LITHIUM-ION BATTERY' },
+  { category:'ENERGY', type:'bonus', lead:'This bonus concerns fluid mechanics and turbines.', parts:[{q:"For 10 points, what principle states that for inviscid fluid in steady flow, increased speed corresponds to decreased pressure?",a:"BERNOULLI'S PRINCIPLE"},{q:"For 10 points, what theoretical maximum, equal to 16 over 27, gives the fraction of wind energy extractable by an ideal turbine?",a:"BETZ LIMIT"},{q:'For 10 points, what dimensionless number is the ratio of inertial to viscous forces and determines laminar versus turbulent flow?',a:'REYNOLDS NUMBER'}]},
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let filtered=[...QUESTIONS], idx=0, catFilter='ALL', typeFilter='ALL';
+const synth=window.speechSynthesis;
+let voices=[], wordTimers=[], isReading=false, isSpeakingPreamble=false;
+let buzzed=false, currentBonusPart=0;
+let bonusPartResults=[]; // 'correct','wrong','skip' per part
+
+// ── VOICE ──────────────────────────────────────────────────────────────────────
+function loadVoices(){
+  const raw=synth.getVoices(); if(!raw.length)return;
+  const sel=document.getElementById('vs-voice'); sel.innerHTML='';
+  voices=[...raw].sort((a,b)=>(a.lang.startsWith('en')?0:1)-(b.lang.startsWith('en')?0:1));
+  voices.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.name+' ('+v.lang+')';sel.appendChild(o);});
+  const ei=voices.findIndex(v=>v.lang.startsWith('en')); if(ei>=0)sel.value=ei;
+  updateVoiceLbl();
+}
+if(synth){synth.onvoiceschanged=loadVoices;loadVoices();}
+document.getElementById('vs-voice').addEventListener('change',updateVoiceLbl);
+document.getElementById('vs-rate').addEventListener('input',()=>{document.getElementById('vs-rate-lbl').textContent=parseFloat(document.getElementById('vs-rate').value).toFixed(1)+'×';});
+document.getElementById('vs-pitch').addEventListener('input',()=>{document.getElementById('vs-pitch-lbl').textContent=parseFloat(document.getElementById('vs-pitch').value).toFixed(1);});
+function updateVoiceLbl(){const v=voices[document.getElementById('vs-voice').value];document.getElementById('vs-voice-lbl').textContent=v?v.lang:'–';}
+function getRate(){return parseFloat(document.getElementById('vs-rate').value);}
+function getVoice(){return voices[document.getElementById('vs-voice').value]||null;}
+function getPitch(){return parseFloat(document.getElementById('vs-pitch').value);}
+
+// ── FILTER / LIST ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.filter-chip[data-cat]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.filter-chip[data-cat]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); catFilter=btn.dataset.cat; applyFilter();
+}));
+document.querySelectorAll('.filter-chip[data-type]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.filter-chip[data-type]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); typeFilter=btn.dataset.type; applyFilter();
+}));
+function applyFilter(){stopAll();filtered=QUESTIONS.filter(q=>(catFilter==='ALL'||q.category===catFilter)&&(typeFilter==='ALL'||q.type===typeFilter));idx=0;buildList();loadQuestion();}
+function buildList(){
+  const list=document.getElementById('q-list'); list.innerHTML='';
+  document.getElementById('nav-count').textContent=filtered.length+' questions';
+  filtered.forEach((q,i)=>{
+    const btn=document.createElement('button'); btn.className='q-list-item'+(i===idx?' active':'');
+    btn.innerHTML=`<div class="item-meta">${q.category} · ${q.type}</div>${(q.type==='tossup'?q.tossup:q.lead).slice(0,55)}…`;
+    btn.addEventListener('click',()=>{stopAll();idx=i;buildList();loadQuestion();});
+    list.appendChild(btn);
+  });
+}
+
+// ── LOAD QUESTION ──────────────────────────────────────────────────────────────
+function loadQuestion(){
+  stopAll(); buzzed=false; currentBonusPart=0; bonusPartResults=[];
+  const q=filtered[idx]; if(!q)return;
+  document.getElementById('idle-hint').style.display='none';
+  document.getElementById('q-stage').classList.add('visible');
+  document.querySelectorAll('.q-list-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  document.getElementById('btn-prev').disabled=idx===0;
+  document.getElementById('btn-next').disabled=idx===filtered.length-1;
+  document.getElementById('q-header').innerHTML=`
+    <span class="badge badge-cat">${q.category}</span>
+    <span class="badge ${q.type==='tossup'?'badge-toss':'badge-bon'}">${q.type.toUpperCase()}</span>
+    ${q.type==='tossup'?`<span class="badge badge-fmt">${q.format}</span>`:''}
+    <span class="q-num">${idx+1} / ${filtered.length}</span>`;
+  if(q.type==='tossup'){
+    document.getElementById('tossup-area').style.display='flex';
+    document.getElementById('bonus-area').style.display='none';
+    document.getElementById('q-text-box').innerHTML='';
+    document.getElementById('ans-reveal').classList.remove('visible');
+    document.getElementById('ans-text').textContent=q.answer;
+    document.getElementById('tossup-answer-zone').classList.remove('visible');
+    document.getElementById('tossup-answer-input').value='';
+    document.getElementById('tossup-answer-input').className='answer-input';
+    document.getElementById('tossup-feedback').className='answer-feedback';
+    document.getElementById('tossup-feedback').style.display='none';
+  } else {
+    document.getElementById('tossup-area').style.display='none';
+    document.getElementById('bonus-area').style.display='flex';
+    document.getElementById('bonus-lead').textContent=q.lead;
+    document.getElementById('bonus-text-box').innerHTML='';
+    document.getElementById('bonus-ans-reveal').classList.remove('visible');
+    document.getElementById('bonus-answer-zone').classList.remove('visible');
+    document.getElementById('bonus-answer-input').value='';
+    document.getElementById('bonus-answer-input').className='answer-input';
+    document.getElementById('bonus-feedback').className='answer-feedback';
+    document.getElementById('bonus-feedback').style.display='none';
+    buildPartNav(q);
+  }
+  setStatus('idle','Ready — press Read or Space to begin');
+  setReadBtn('idle');
+  document.getElementById('btn-buzz').classList.remove('visible');
+}
+
+function buildPartNav(q){
+  const nav=document.getElementById('part-nav');
+  nav.innerHTML='<span style="font-size:0.75rem;color:var(--text-muted);margin-right:4px;">Part</span>';
+  q.parts.forEach((_,i)=>{
+    const btn=document.createElement('button');
+    btn.className='part-dot-btn'+(i===currentBonusPart?' active':'');
+    btn.id='part-dot-'+i; btn.textContent=i+1;
+    nav.appendChild(btn);
+  });
+}
+function updatePartNav(){
+  const q=filtered[idx]; if(!q||q.type!=='bonus')return;
+  q.parts.forEach((_,i)=>{
+    const b=document.getElementById('part-dot-'+i); if(!b)return;
+    b.className='part-dot-btn';
+    if(bonusPartResults[i]==='correct') b.classList.add('done-correct');
+    else if(bonusPartResults[i]==='wrong') b.classList.add('done-wrong');
+    else if(bonusPartResults[i]==='skip') b.classList.add('done-skip');
+    if(i===currentBonusPart) b.classList.add('active');
+  });
+}
+
+// ── WORD REVEAL ────────────────────────────────────────────────────────────────
+// Key fix: we speak preamble and question as SEPARATE utterances.
+// Word reveal only starts when the question utterance begins (onstart callback).
+// This guarantees perfect sync regardless of preamble length.
+
+const MS_PER_WORD_BASE = 390; // calibrated ms per word at rate=1.0
+
+function buildWordSpans(text, container){
+  container.innerHTML='';
+  const words=text.split(/(\s+)/);
+  let wordIdx=0;
+  words.forEach(tok=>{
+    if(/^\s+$/.test(tok)){
+      const s=document.createElement('span'); s.className='word-space'; s.textContent=tok; container.appendChild(s);
+    } else if(tok.length>0){
+      const s=document.createElement('span'); s.className='word'; s.id='w-'+wordIdx; s.textContent=tok; container.appendChild(s); wordIdx++;
+    }
+  });
+  return wordIdx;
+}
+
+function revealWordsOverTime(container, totalWords, durationMs){
+  clearWordTimers();
+  if(totalWords===0)return;
+  const msPerWord=durationMs/totalWords;
+  for(let i=0;i<totalWords;i++){
+    const t=setTimeout(()=>{const el=container.querySelector('#w-'+i);if(el)el.classList.add('shown');},i*msPerWord);
+    wordTimers.push(t);
+  }
+}
+function clearWordTimers(){wordTimers.forEach(t=>clearTimeout(t));wordTimers=[];}
+function showAllWords(container){container.querySelectorAll('.word').forEach(el=>el.classList.add('shown'));}
+
+function speakUtterance(text, onStart, onEnd){
+  const u=new SpeechSynthesisUtterance(text);
+  u.voice=getVoice(); u.rate=getRate(); u.pitch=getPitch();
+  u.onstart=()=>{if(onStart)onStart();};
+  u.onend=()=>{if(onEnd)onEnd();};
+  u.onerror=(e)=>{if(e.error==='interrupted')return;if(onEnd)onEnd();};
+  synth.speak(u);
+}
+
+function estimateDuration(text){
+  const words=text.trim().split(/\s+/).length;
+  return (words*MS_PER_WORD_BASE)/getRate();
+}
+
+// ── READ TOSSUP ────────────────────────────────────────────────────────────────
+function readTossup(){
+  const q=filtered[idx];
+  const preamble=`Tossup. ${q.category}. ${q.format}.`;
+  const box=document.getElementById('q-text-box');
+  const totalWords=buildWordSpans(q.tossup, box);
+  const estDur=estimateDuration(q.tossup);
+
+  isReading=true; isSpeakingPreamble=true; buzzed=false;
+  setReadBtn('reading');
+  setStatus('reading','Reading preamble…');
+  document.getElementById('btn-buzz').classList.remove('visible');
+
+  // Step 1: speak preamble
+  speakUtterance(preamble, null, ()=>{
+    if(!isReading)return; // was stopped
+    isSpeakingPreamble=false;
+    setStatus('reading','Reading question…');
+    document.getElementById('btn-buzz').classList.add('visible');
+
+    // Step 2: speak question text — start word reveal exactly when speech begins
+    speakUtterance(q.tossup,
+      ()=>{ revealWordsOverTime(box, totalWords, estDur); },
+      ()=>{
+        if(!buzzed){
+          clearWordTimers(); showAllWords(box);
+          isReading=false;
+          setReadBtn('done');
+          document.getElementById('btn-buzz').classList.remove('visible');
+          setStatus('done','Done reading — type your answer or reveal');
+        }
+      }
+    );
+  });
+}
+
+// ── READ BONUS PART ────────────────────────────────────────────────────────────
+function readBonusPart(partIdx){
+  const q=filtered[idx]; const part=q.parts[partIdx];
+  currentBonusPart=partIdx; updatePartNav();
+  document.getElementById('bonus-ans-reveal').classList.remove('visible');
+  document.getElementById('bonus-answer-zone').classList.remove('visible');
+  document.getElementById('bonus-answer-input').value='';
+  document.getElementById('bonus-answer-input').className='answer-input';
+  document.getElementById('bonus-feedback').className='answer-feedback';
+  document.getElementById('bonus-feedback').style.display='none';
+
+  const box=document.getElementById('bonus-text-box');
+  const totalWords=buildWordSpans(part.q, box);
+  const estDur=estimateDuration(part.q);
+
+  isReading=true; buzzed=false;
+  setReadBtn('reading');
+  setStatus('reading',`Reading part ${partIdx+1} of ${q.parts.length}…`);
+
+  speakUtterance(part.q,
+    ()=>{ revealWordsOverTime(box, totalWords, estDur); },
+    ()=>{
+      clearWordTimers(); showAllWords(box);
+      isReading=false;
+      setReadBtn('done');
+      // Show answer input
+      document.getElementById('bonus-answer-zone').classList.add('visible');
+      document.getElementById('bonus-ans-text').textContent=part.a;
+      setStatus('done',`Part ${partIdx+1} done — type your answer`);
+      setTimeout(()=>document.getElementById('bonus-answer-input').focus(),100);
+    }
+  );
+}
+
+function readBonus(){
+  const q=filtered[idx];
+  bonusPartResults=[];
+  buildPartNav(q);
+  document.getElementById('bonus-text-box').innerHTML='';
+  document.getElementById('bonus-ans-reveal').classList.remove('visible');
+  document.getElementById('bonus-answer-zone').classList.remove('visible');
+
+  isReading=true; isSpeakingPreamble=true;
+  setReadBtn('reading');
+  setStatus('reading','Reading bonus lead…');
+
+  speakUtterance(`Bonus. ${q.category}. ${q.lead}`, null, ()=>{
+    if(!isReading)return;
+    isSpeakingPreamble=false;
+    readBonusPart(0);
+  });
+}
+
+// ── ANSWER CHECKING ────────────────────────────────────────────────────────────
+function normalise(s){
+  return s.toLowerCase().trim()
+    .replace(/[^a-z0-9\s]/g,'')
+    .replace(/\s+/g,' ');
+}
+
+function checkAnswer(userRaw, correctRaw){
+  const user=normalise(userRaw);
+  const correct=normalise(correctRaw);
+  if(user===correct)return true;
+  // allow partial match: user answer is contained in correct or vice versa (for abbreviations etc.)
+  if(correct.includes(user)&&user.length>2)return true;
+  // word-level: all words the user typed appear in the correct answer
+  const uWords=user.split(' ').filter(w=>w.length>1);
+  const cWords=correct.split(' ');
+  if(uWords.length>0&&uWords.every(w=>cWords.includes(w)))return true;
+  return false;
+}
+
+function submitTossupAnswer(){
+  const input=document.getElementById('tossup-answer-input');
+  const fb=document.getElementById('tossup-feedback');
+  const q=filtered[idx];
+  const correct=checkAnswer(input.value, q.answer);
+  input.className='answer-input '+(correct?'correct':'wrong');
+  fb.className='answer-feedback '+(correct?'correct':'wrong');
+  fb.style.display='flex';
+  if(correct){
+    fb.innerHTML='✓ Correct!';
+    setStatus('correct','Correct answer!');
+  } else {
+    fb.innerHTML='✗ Incorrect';
+    setStatus('wrong','Incorrect — showing answer');
+    document.getElementById('ans-reveal').classList.add('visible');
+  }
+}
+
+function submitBonusAnswer(){
+  const input=document.getElementById('bonus-answer-input');
+  const fb=document.getElementById('bonus-feedback');
+  const q=filtered[idx];
+  const part=q.parts[currentBonusPart];
+  const correct=checkAnswer(input.value, part.a);
+
+  input.className='answer-input '+(correct?'correct':'wrong');
+  fb.className='answer-feedback '+(correct?'correct':'wrong');
+  fb.style.display='flex';
+
+  bonusPartResults[currentBonusPart]=correct?'correct':'wrong';
+  updatePartNav();
+
+  if(correct){
+    fb.innerHTML='✓ Correct!';
+    setStatus('correct','Correct!');
+    document.getElementById('bonus-ans-reveal').classList.add('visible');
+    // auto-advance to next part after 1.5s
+    const nextPart=currentBonusPart+1;
+    if(nextPart<q.parts.length){
+      setTimeout(()=>{
+        if(filtered[idx]===q) readBonusPart(nextPart);
+      },1500);
+    } else {
+      setTimeout(()=>{ if(filtered[idx]===q) setStatus('done','Bonus complete!'); },1500);
+    }
+  } else {
+    fb.innerHTML='✗ Incorrect — bonus part skipped';
+    setStatus('wrong','Wrong — skipping to next part');
+    document.getElementById('bonus-ans-reveal').classList.add('visible');
+    // skip this part, move to next after 2s
+    const nextPart=currentBonusPart+1;
+    if(nextPart<q.parts.length){
+      setTimeout(()=>{
+        if(filtered[idx]===q) readBonusPart(nextPart);
+      },2000);
+    } else {
+      setTimeout(()=>{ if(filtered[idx]===q) setStatus('done','Bonus complete!'); },2000);
+    }
+  }
+}
+
+// ── BUZZ IN ────────────────────────────────────────────────────────────────────
+function handleBuzz(){
+  if(!isReading||isSpeakingPreamble)return; // can't buzz during preamble
+  buzzed=true; clearWordTimers(); synth.cancel(); isReading=false;
+  document.getElementById('btn-buzz').classList.remove('visible');
+  setReadBtn('idle');
+  setStatus('buzzed','⚡ Buzzed! Type your answer below');
+  document.getElementById('tossup-answer-zone').classList.add('visible');
+  setTimeout(()=>document.getElementById('tossup-answer-input').focus(),100);
+}
+
+// ── HANDLE READ ────────────────────────────────────────────────────────────────
+function handleRead(){
+  const q=filtered[idx]; if(!q)return;
+  if(isReading){stopAll();return;}
+  synth.cancel();
+  if(q.type==='tossup') readTossup();
+  else readBonus();
+}
+
+// ── REVEAL ANSWER ──────────────────────────────────────────────────────────────
+function revealCurrentAnswer(){
+  const q=filtered[idx]; if(!q)return;
+  if(q.type==='tossup'){
+    document.getElementById('ans-reveal').classList.add('visible');
+    setStatus('done','Answer revealed');
+  } else {
+    document.getElementById('bonus-ans-text').textContent=q.parts[currentBonusPart].a;
+    document.getElementById('bonus-ans-reveal').classList.add('visible');
+    setStatus('done','Answer revealed');
+  }
+}
+
+// ── RESET ──────────────────────────────────────────────────────────────────────
+function resetQuestion(){
+  stopAll();
+  const q=filtered[idx]; if(!q)return;
+  buzzed=false; currentBonusPart=0; bonusPartResults=[];
+  if(q.type==='tossup'){
+    document.getElementById('q-text-box').innerHTML='';
+    document.getElementById('ans-reveal').classList.remove('visible');
+    document.getElementById('tossup-answer-zone').classList.remove('visible');
+    document.getElementById('tossup-answer-input').value='';
+    document.getElementById('tossup-answer-input').className='answer-input';
+    document.getElementById('tossup-feedback').style.display='none';
+  } else {
+    document.getElementById('bonus-text-box').innerHTML='';
+    document.getElementById('bonus-ans-reveal').classList.remove('visible');
+    document.getElementById('bonus-answer-zone').classList.remove('visible');
+    document.getElementById('bonus-answer-input').value='';
+    document.getElementById('bonus-answer-input').className='answer-input';
+    document.getElementById('bonus-feedback').style.display='none';
+    buildPartNav(q);
+  }
+  setStatus('idle','Reset — press Read or Space to begin again');
+  setReadBtn('idle');
+  document.getElementById('btn-buzz').classList.remove('visible');
+}
+
+function stopAll(){
+  clearWordTimers(); if(synth)synth.cancel();
+  isReading=false; isSpeakingPreamble=false;
+  setReadBtn('idle');
+  document.getElementById('btn-buzz').classList.remove('visible');
+}
+
+// ── UI HELPERS ─────────────────────────────────────────────────────────────────
+function setStatus(state,txt){
+  document.getElementById('s-dot').className='s-dot '+state;
+  document.getElementById('s-txt').textContent=txt;
+  document.getElementById('s-wave').classList.toggle('active',state==='reading');
+}
+function setReadBtn(state){
+  const btn=document.getElementById('btn-read'),lbl=document.getElementById('read-lbl'),icon=document.getElementById('read-icon');
+  btn.classList.remove('reading');
+  if(state==='reading'){btn.classList.add('reading');lbl.textContent='Stop';icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';}
+  else{const q=filtered[idx];lbl.textContent=q?(q.type==='bonus'?'Read bonus':'Read question'):'Read';icon.innerHTML='<path d="M8 5v14l11-7z"/>';}
+}
+function navigate(dir){stopAll();idx=Math.max(0,Math.min(filtered.length-1,idx+dir));buildList();loadQuestion();}
+
+// ── KEYBOARD ───────────────────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  const tag=e.target.tagName;
+  if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'){
+    // Enter submits in input boxes
+    if(e.key==='Enter'){
+      if(e.target.id==='tossup-answer-input') submitTossupAnswer();
+      if(e.target.id==='bonus-answer-input') submitBonusAnswer();
+    }
+    return;
+  }
+  if(e.key===' '){e.preventDefault();handleRead();}
+  if(e.key==='b'||e.key==='B') handleBuzz();
+  if(e.key==='a'||e.key==='A') revealCurrentAnswer();
+  if(e.key==='r'||e.key==='R') resetQuestion();
+  if(e.key==='ArrowRight'||e.key==='ArrowDown') navigate(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') navigate(-1);
+});
+
+// Enter in answer inputs
+document.getElementById('tossup-answer-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitTossupAnswer();});
+document.getElementById('bonus-answer-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitBonusAnswer();});
+
+window.addEventListener('beforeunload',()=>synth&&synth.cancel());
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+buildList();
+loadQuestion();
+</script>
+</body>
+</html>
